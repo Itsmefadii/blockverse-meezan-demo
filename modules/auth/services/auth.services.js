@@ -160,7 +160,7 @@ export const loginServices = async (req) => {
       id: user.id,
       name: user.name,
       email: user.email,
-      receiverAddress: `http://meezan-userpanel.vercel.app:5173/kyc?user=${encoded}`,
+      receiverAddress: `https://meezan-userpanel.vercel.app:5173/kyc?user=${encoded}`,
       role: role.roleName,
       isKYC: user.isKYC,
       token,
