@@ -1,0 +1,27 @@
+{
+  "name": "meezan-demo-backend",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "SET NODE_ENV=development && nodemon server.js"
+  },
+  "type": "module",
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@fastify/cors": "^11.2.0",
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.3.1",
+    "ethers": "^6.16.0",
+    "fastify": "^5.7.4",
+    "jsonwebtoken": "^9.0.3",
+    "mysql2": "^3.18.0",
+    "nodemon": "^3.1.14",
+    "path": "^0.12.7",
+    "sequelize": "^6.37.7",
+    "url": "^0.11.4"
+  }
+}
