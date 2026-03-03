@@ -1,4 +1,4 @@
-import { ethProvider, getDisputedAmountBalance } from "../../../utils/utils.js";
+import { ethProvider, fetchWalletBalances, getDisputedAmountBalance } from "../../../utils/utils.js";
 import { ethers } from "ethers";
 import { User } from "../../auth/models/user.model.js";
 import { TransactionHistory } from "../models/transactionHistory.model.js";
@@ -117,7 +117,7 @@ export const getBalanceService = async (req) => {
       attributes: ["privateKey"],
     });
 
-    const balance = fetchWalletBalances(
+    const balance = await fetchWalletBalances(
       data.privateKey,
       req.user.walletAddress,
     );
