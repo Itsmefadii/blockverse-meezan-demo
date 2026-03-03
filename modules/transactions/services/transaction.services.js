@@ -2,7 +2,6 @@ import { ethProvider, getDisputedAmountBalance } from "../../../utils/utils.js";
 import { ethers } from "ethers";
 import { User } from "../../auth/models/user.model.js";
 import { TransactionHistory } from "../models/transactionHistory.model.js";
-import sequelize from "../../../config/db.js";
 import { PkrConversions } from "../models/pkrConversions.model.js";
 
 export const transactionServices = async (req) => {
@@ -138,19 +137,14 @@ export const getBalanceService = async (req) => {
     const decimals = await contract.decimals();
     const _balance = ethers.formatUnits(balance, decimals);
 
-    const query = await getDisputedAmountBalance(req.user.id)
-
-    const calculatedBal = _balance - query.unauthorizedAmount;
-    return calculatedBal;
+    return _balance;
   } catch (error) {
     throw new Error(error.message);
   }
 };
 
 export const usdcToPkrConversionService = async (req) => {
-  try {
-    if(req.user.role === "admin") throw new Error("Admin can't access this route")
-      
+  try {      
     const { amount } = req.query;
 
     const ERC20_ABI = [
@@ -215,9 +209,10 @@ export const usdcToPkrConversionService = async (req) => {
       toWalletAddress: process.env.TREASURY_WALLET_ADDRESS,
       amount: amount,
       status: "SUCCESS",
-      trasactionHash: receipt.hash,
+      transHash: receipt.hash,
       initiator: req.user.id,
       isAuthorized: 1,
+      toDisputeWallet: 0,
     });
 
     const pkrConversion = amount * 279.78;

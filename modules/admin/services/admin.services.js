@@ -9,6 +9,7 @@ import {
 } from "../../../utils/utils.js";
 import { Op, where } from "sequelize";
 import { NonBank_kyc } from "../../kyc/models/non-bankKyc.model.js";
+import { BankKyc } from "../../kyc/models/bankKyc.model.js";
 
 export const masterWalletServices = async (req) => {
   try {
@@ -257,6 +258,14 @@ export const userListingService = async (req) => {
       });
 
       user.dataValues.authorizedWallets = fetchNonBankers;
+
+      const kyc = await BankKyc.findOne({
+        where: {
+          user_id: userId,
+        }
+      })
+
+      user.dataValues.kyc = kyc
       return user;
     }
 
