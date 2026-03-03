@@ -35,7 +35,7 @@ export const titleFetchService = async (req) => {
       });
 
       if (!data) {
-        throw new Error("No non-bank user found with the provided email");
+        throw new Error("No bank user found with the provided email");
       }
 
       if (!data.isKYC) {
