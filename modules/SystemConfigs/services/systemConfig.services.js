@@ -25,6 +25,10 @@ export const titleFetchService = async (req) => {
   try {
     const { email, title } = req.query;
 
+    if (email === req.user.email) {
+      throw new Error("Email belongs to the requester");
+    }
+
     let data = null;
     if (title === "bank") {
       data = await User.findOne({
