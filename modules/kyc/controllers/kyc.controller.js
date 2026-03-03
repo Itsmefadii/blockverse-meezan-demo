@@ -15,7 +15,7 @@ export const nonBankKycController = async (req, reply) => {
     try {
         const data = await nonBankKycService(req);
 
-        return reply.status(200).send(apiResponse(true, "KYC successful", data, 200, "SUCCESS"));
+        return reply.status(200).send(apiResponse(true, "KYC successfull", data, 200, "SUCCESS"));
     } catch (error) {
         return reply.status(400).send(apiResponse(false, `KYC failed: ${error.message}`, null, 400, "FAILURE"));
     }

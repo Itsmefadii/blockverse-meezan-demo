@@ -1,7 +1,7 @@
 import bcrypt from "bcrypt";
 import { ethers, HDNodeWallet } from "ethers";
 import { User } from "../models/user.model.js";
-import { ethProvider, signJWT } from "../../../utils/utils.js";
+import { ethProvider, fetchWalletBalances, signJWT } from "../../../utils/utils.js";
 import sequelize from "../../../config/db.js";
 import { Roles } from "../models/roles.model.js";
 
@@ -116,7 +116,8 @@ export const loginServices = async (req) => {
         "password",
         "walletAddress",
         "roleId",
-        "isKYC"
+        "isKYC",
+        "privateKey"
       ],
     });
     if (!user) {
@@ -156,13 +157,16 @@ export const loginServices = async (req) => {
     //BASE64
     const encoded = Buffer.from(JSON.stringify(user.dataValues)).toString("base64");
 
+    const balance = await fetchWalletBalances(user.privateKey, user.walletAddress);
+
     const data = {
       id: user.id,
       name: user.name,
       email: user.email,
-      receiverAddress: `https://meezan-userpanel.vercel.app/kyc?user=${encoded}`,
+      receiverAddress: `http://localhost:5173/kyc?user=${encoded}`,
       role: role.roleName,
       isKYC: user.isKYC,
+      balance,
       token,
     };
     return data;

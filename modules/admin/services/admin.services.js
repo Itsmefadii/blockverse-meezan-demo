@@ -247,13 +247,7 @@ export const userListingService = async (req) => {
       );
       console.log("Balance: ", balance);
 
-      const disputedAmt = await getDisputedAmountBalance(user.id);
-
-      user.dataValues.actualBalance = parseFloat(balance).toFixed(2);
-      user.dataValues.disputedAmount = parseFloat(disputedAmt).toFixed(2);
-      user.dataValues.calculatedBalance = parseFloat(
-        balance - disputedAmt,
-      ).toFixed(2);
+      user.dataValues.balance = parseFloat(balance).toFixed(2);
 
       const fetchNonBankers = await NonBank_kyc.findAll({
         where: {
@@ -305,23 +299,31 @@ const offset = parseInt(req.query.offset, 10) || 0;
 
     console.log("USER: ", user)
 
-    for (let i = 0; i < user.rows.length; i++) {
-      const balance = await fetchWalletBalances(
-        user.rows[i].privateKey,
-        user.rows[i].walletAddress,
-      );
-      console.log("Balance: ", balance);
+    // for (let i = 0; i < user.rows.length; i++) {
+    //   const balance = await fetchWalletBalances(
+    //     user.rows[i].privateKey,
+    //     user.rows[i].walletAddress,
+    //   );
+    //   console.log("Balance: ", balance);
 
-      const disputedAmt = await getDisputedAmountBalance(user.rows[i].id);
+    //   user.rows[i].dataValues.balance = parseFloat(balance).toFixed(2);
+    // }
 
-      user.rows[i].dataValues.actualBalance = parseFloat(balance).toFixed(2);
-      user.rows[i].dataValues.disputedAmount = parseFloat(disputedAmt).toFixed(2);
-      user.rows[i].dataValues.calculatedBalance = parseFloat(
-        balance - disputedAmt,
-      ).toFixed(2);
-    }
+    const updatedRows = await Promise.all(
+  user.rows.map(async (user) => {
+    const balance = await fetchWalletBalances(
+      user.privateKey,
+      user.walletAddress
+    );
 
-    return {count: user.count, data: user.rows};
+    return {
+      ...user.toJSON(),
+      balance: parseFloat(balance).toFixed(2)
+    };
+  })
+);
+
+    return {count: user.count, data: updatedRows};
   } catch (error) {
     throw new Error(error.message);
   }

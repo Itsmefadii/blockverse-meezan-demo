@@ -7,7 +7,7 @@ export const masterWalletController = async (req, reply) => {
 
         return reply.status(200).send(apiResponse(true, "Master wallet created successfully", data, 200, "SUCCESS"));
     } catch (error) {
-        return reply.status(400).send(apiResponse(false, `Master wallet creation failed: ${error.message}`, null, 400, "FAILURE"));
+        return reply.status(400).send(apiResponse(false, error.message, null, 400, "FAILURE"));
     }
 }
 
@@ -17,7 +17,7 @@ export const fetchTransactionHistoryController = async (req, reply) => {
 
         return reply.status(200).send(apiResponse(true, "Transaction history fetched successfully", data, 200, "SUCCESS"));
     } catch (error) {
-        return reply.status(400).send(apiResponse(false, `Failed to fetch transaction history: ${error.message}`, null, 400, "FAILURE"));
+        return reply.status(400).send(apiResponse(false, error.message, null, 400, "FAILURE"));
     }
 }
 
@@ -27,7 +27,7 @@ export const updateTransactionHistoryController = async (req, reply) => {
 
         return reply.status(200).send(apiResponse(true, "Transaction history fetched successfully", data, 200, "SUCCESS"));
     } catch (error) {
-        return reply.status(400).send(apiResponse(false, `Failed to fetch transaction history: ${error.message}`, null, 400, "FAILURE"));
+        return reply.status(400).send(apiResponse(false, error.message, null, 400, "FAILURE"));
     }
 }
 
@@ -37,7 +37,7 @@ export const adminWalletsBalancesController = async (req, reply) => {
 
         return reply.status(200).send(apiResponse(true, "Balances fetched successfully", data, 200, "SUCCESS"));
     } catch (error) {
-        return reply.status(400).send(apiResponse(false, `Failed to fetch balances: ${error.message}`, null, 400, "FAILURE"));
+        return reply.status(400).send(apiResponse(false, error.message, null, 400, "FAILURE"));
     }
 }
 
@@ -47,7 +47,7 @@ export const userListingController = async (req, reply) => {
 
         return reply.status(200).send(apiResponse(true, "Users fetched successfully", data, 200, "SUCCESS"));
     } catch (error) {
-        return reply.status(400).send(apiResponse(false, `Failed to fetch users: ${error.message}`, null, 400, "FAILURE"));
+        return reply.status(400).send(apiResponse(false, error.message, null, 400, "FAILURE"));
     }
 }
 
@@ -57,6 +57,6 @@ export const processRefundController = async (req, reply) => {
 
         return reply.status(200).send(apiResponse(true, "Users fetched successfully", data, 200, "SUCCESS"));
     } catch (error) {
-        return reply.status(400).send(apiResponse(false, `Failed to fetch users: ${error.message}`, null, 400, "FAILURE"));
+        return reply.status(400).send(apiResponse(false, error.message, null, 400, "FAILURE"));
     }
 }

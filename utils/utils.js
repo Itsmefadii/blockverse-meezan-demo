@@ -54,8 +54,6 @@ export const fetchWalletBalances = async (privateKey, walletAddress) => {
   );
   const balance = await contract.balanceOf(walletAddress);
 
-  console.log("Balance: ", Number(balance));
-
   const decimals = await contract.decimals();
   const _balance = ethers.formatUnits(balance, decimals);
 

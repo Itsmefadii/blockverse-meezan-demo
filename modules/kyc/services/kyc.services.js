@@ -45,6 +45,7 @@ export const nonBankKycService = async (req) => {
 
   try {
     const user = await User.findByPk(userId);
+    
     if (user == null) {
       throw new Error("User Not Found");
     }
@@ -52,12 +53,17 @@ export const nonBankKycService = async (req) => {
     const findNonBankKyc = await NonBank_kyc.findOne({
       where: {
         wallet_address: walletAddress,
-        user_id: userId
+        user_id: userId,
       },
     });
 
+    let kyc;
     if (findNonBankKyc) {
-      return findNonBankKyc;
+      kyc = findNonBankKyc.toJSON();
+
+      kyc.receiverAddress = user.walletAddress;
+
+      return kyc;
     }
 
     const nonBankKyc = await NonBank_kyc.create({
@@ -68,7 +74,11 @@ export const nonBankKycService = async (req) => {
       isKYC: true,
     });
 
-    return nonBankKyc;
+    kyc = nonBankKyc.toJSON();
+
+    kyc.receiverAddress = user.walletAddress;
+
+    return kyc;
   } catch (error) {
     throw new Error(error.message);
   }
