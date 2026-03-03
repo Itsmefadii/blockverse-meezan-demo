@@ -110,12 +110,6 @@ export const transactionServices = async (req) => {
 
 export const getBalanceService = async (req) => {
   try {
-    const ERC20_ABI = [
-      "function transfer(address to, uint256 amount) returns (bool)",
-      "function decimals() view returns (uint8)",
-      "function balanceOf(address owner) view returns (uint256)",
-    ];
-
     const data = await User.findOne({
       where: {
         id: req.user.id,
@@ -123,21 +117,12 @@ export const getBalanceService = async (req) => {
       attributes: ["privateKey"],
     });
 
-    const userWallet = new ethers.Wallet(data.privateKey, ethProvider);
-
-    const contract = new ethers.Contract(
-      process.env.USDC_CONTRACT_ADDRESS,
-      ERC20_ABI,
-      userWallet,
+    const balance = fetchWalletBalances(
+      data.privateKey,
+      req.user.walletAddress,
     );
-    const balance = await contract.balanceOf(req.user.walletAddress);
 
-    console.log("Balance: ", Number(balance));
-
-    const decimals = await contract.decimals();
-    const _balance = ethers.formatUnits(balance, decimals);
-
-    return _balance;
+    return balance;
   } catch (error) {
     throw new Error(error.message);
   }
