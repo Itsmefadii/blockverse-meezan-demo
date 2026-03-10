@@ -188,6 +188,7 @@ export const processRefundService = async (req) => {
       await TransactionHistory.update(
         {
           isDispute: 0,
+          status: action === "refund" ? "REFUNDED" : "APPROVED",
         },
         {
           where: {

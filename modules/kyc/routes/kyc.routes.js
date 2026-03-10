@@ -1,4 +1,4 @@
-import { bankKycController, nonBankKycController } from "../controllers/kyc.controller.js";
+import { bankKycController, checkExistingKycController, checkKycController, nonBankKycController } from "../controllers/kyc.controller.js";
 
 export const kycRoutes = (fastify, options, done) => {
     fastify.route({
@@ -17,6 +17,26 @@ export const kycRoutes = (fastify, options, done) => {
     handler: (req, reply) => {
       if (req.method == "POST") {
         nonBankKycController(req, reply)
+      }
+    },
+  });
+
+   fastify.route({
+    method: ["GET", "POST", "PUT", "DELETE"],
+    url: "/check-kyc",
+    handler: (req, reply) => {
+      if (req.method == "POST") {
+        checkKycController(req, reply)
+      }
+    },
+  });
+
+  fastify.route({
+    method: ["GET", "POST", "PUT", "DELETE"],
+    url: "/check-existing-kyc",
+    handler: (req, reply) => {
+      if (req.method == "GET") {
+        checkExistingKycController(req, reply)
       }
     },
   });

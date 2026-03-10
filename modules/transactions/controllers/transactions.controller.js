@@ -1,5 +1,5 @@
 import { apiResponse } from "../../../utils/utils.js";
-import { getBalanceService, outsideTxnService, transactionServices, usdcToPkrConversionService } from "../services/transaction.services.js";
+import { fetchTransactionsService, getBalanceService, outsideTxnService, transactionServices, usdcToPkrConversionService } from "../services/transaction.services.js";
 
 export const trasactionController = async (req, reply) => {
     try {
@@ -36,6 +36,16 @@ export const usdcToPkrConversionController = async (req, reply) => {
         const data = await usdcToPkrConversionService(req);
 
         return reply.status(200).send(apiResponse(true, "USDC to PKR converted successfully", data, 200, "SUCCESS"));
+    } catch (error) {
+        return reply.status(400).send(apiResponse(false, error.message, null, 400, "FAILURE"));
+    }
+}
+
+export const fetchTransactionsController = async (req, reply) => {
+    try {
+        const data = await fetchTransactionsService(req);
+
+        return reply.status(200).send(apiResponse(true, "Transactions fetched successfully", data, 200, "SUCCESS"));
     } catch (error) {
         return reply.status(400).send(apiResponse(false, error.message, null, 400, "FAILURE"));
     }

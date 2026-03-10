@@ -41,7 +41,7 @@ export const bankKycService = async (req) => {
 };
 
 export const nonBankKycService = async (req) => {
-  const { name, email, walletAddress, userId } = req.body;
+  const { name, email, walletAddress, address, userId } = req.body;
 
   try {
     const user = await User.findByPk(userId);
@@ -72,6 +72,7 @@ export const nonBankKycService = async (req) => {
       wallet_address: walletAddress,
       user_id: userId,
       isKYC: true,
+      address
     });
 
     kyc = nonBankKyc.toJSON();
@@ -83,3 +84,54 @@ export const nonBankKycService = async (req) => {
     throw new Error(error.message);
   }
 };
+
+
+export const checkKycService = async (req) => {
+
+  const {receiverAddress, senderAddress} = req.body;
+
+  try{
+    const user = await User.findOne({
+      where : {
+        walletAddress : receiverAddress
+      }
+    });
+
+    if(user == null){
+      throw new Error("user not found");
+    }
+
+    const nonBankKyc =  await NonBank_kyc.findOne({
+      where : {
+        [Op.and] : [{user_id : user.id}, {wallet_address : senderAddress}]
+      }
+    })
+
+    if(nonBankKyc){
+      return {isBind: true, receiverAddress}
+    }
+
+    return {isBind: false, receiverAddress}
+  }
+
+  catch (error){
+    throw new Error(error.message);
+  }
+}
+
+export const checkExistingKycService = async (req) => {
+  try{
+    const {walletAddress} = req.query
+
+    const nonBankKyc = await NonBank_kyc.findOne({
+      where: {
+        wallet_address: walletAddress
+      },
+      attributes: ["id", "name", "email", "wallet_address", "address"]
+    })
+
+    return nonBankKyc;
+  } catch (error){
+    throw new Error(error.message);
+  }
+}

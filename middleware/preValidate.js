@@ -5,7 +5,9 @@ const insecureRoutes = [
   "/api/v1/auth/signup",
   "/api/v1/health",
   "/api/v1/kyc/nonBankKyc",
-  "/api/v1/kyc/bankKyc"
+  "/api/v1/kyc/bankKyc",
+  "/api/v1/kyc/check-kyc",
+  "/api/v1/kyc/check-existing-kyc"
 ];
 
 export function preValidate(fastify){

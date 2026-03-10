@@ -1,8 +1,13 @@
-import { ethProvider, fetchWalletBalances, getDisputedAmountBalance } from "../../../utils/utils.js";
+import {
+  ethProvider,
+  fetchWalletBalances,
+  getDisputedAmountBalance,
+} from "../../../utils/utils.js";
 import { ethers } from "ethers";
 import { User } from "../../auth/models/user.model.js";
 import { TransactionHistory } from "../models/transactionHistory.model.js";
 import { PkrConversions } from "../models/pkrConversions.model.js";
+import { Op } from "sequelize";
 
 export const transactionServices = async (req) => {
   try {
@@ -117,19 +122,27 @@ export const getBalanceService = async (req) => {
       attributes: ["privateKey"],
     });
 
-    const balance = await fetchWalletBalances(
+    const usdcbalance = await fetchWalletBalances(
       data.privateKey,
       req.user.walletAddress,
     );
 
-    return balance;
+    const pkrBalance = await PkrConversions.findAll({
+      where: {
+        userId: req.user.id
+      }
+    })
+
+    const sumPkr = pkrBalance.reduce((acc, curr) => acc + Number(curr.pkrAmount), 0);
+
+    return {usdc_amount : usdcbalance, pkr_amount: sumPkr};
   } catch (error) {
     throw new Error(error.message);
   }
 };
 
 export const usdcToPkrConversionService = async (req) => {
-  try {      
+  try {
     const { amount } = req.query;
 
     const ERC20_ABI = [
@@ -217,22 +230,70 @@ export const usdcToPkrConversionService = async (req) => {
   }
 };
 
-
-export const outsideTxnService = async(req) => {
+export const outsideTxnService = async (req) => {
   try {
-    const {from, to, amount, status, transHash } = req.body;
+    const { from, to, amount, status, transHash } = req.body;
 
     const txnHistory = await TransactionHistory.create({
       fromWalletAddress: from,
       toWalletAddress: to,
       amount,
       status,
-      transHash
-    })
+      transHash,
+    });
 
-    return txnHistory
-
+    return txnHistory;
   } catch (error) {
-    throw new Error(error.message)
+    throw new Error(error.message);
   }
-}
+};
+
+export const fetchTransactionsService = async (req) => {
+  try {
+    const { search } = req.query;
+
+    let whereCondition = {
+      [Op.or]: [
+        { toWalletAddress: req.user.walletAddress },
+        { fromWalletAddress: req.user.walletAddress },
+      ],
+    };
+
+    console.log(whereCondition);
+
+    if (search === "received") {
+      whereCondition = {
+        toWalletAddress: req.user.walletAddress,
+      };
+    }
+
+    if (search === "sent") {
+      whereCondition = {
+        fromWalletAddress: req.user.walletAddress,
+      };
+    }
+    const Txn = await TransactionHistory.findAll({
+      where: whereCondition,
+    });
+
+    const refactorData = Txn.map((txn) => {
+      const data = txn.toJSON();
+
+      if (data.toWalletAddress === req.user.walletAddress) {
+        return {
+          ...data,
+          type: "Received",
+        };
+      } else {
+        return {
+          ...data,
+          type: "Sent",
+        };
+      }
+    });
+
+    return refactorData;
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};

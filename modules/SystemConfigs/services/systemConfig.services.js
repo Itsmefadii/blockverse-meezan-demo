@@ -25,7 +25,7 @@ export const titleFetchService = async (req) => {
   try {
     const { email, title } = req.query;
 
-    if (email === req.user.email) {
+    if(email === req.user.email){
       throw new Error("Email belongs to the requester");
     }
 

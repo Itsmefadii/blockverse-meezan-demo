@@ -12,6 +12,7 @@ export const PkrConversions = sequelize.define(
     walletAddress: DataTypes.STRING,
     usdcAmount: DataTypes.DECIMAL,
     pkrAmount: DataTypes.DECIMAL,
+    userId: DataTypes.INTEGER,
     createdAt: {
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW,

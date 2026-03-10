@@ -55,7 +55,7 @@ export const processRefundController = async (req, reply) => {
     try {
         const data = await processRefundService(req);
 
-        return reply.status(200).send(apiResponse(true, "Users fetched successfully", data, 200, "SUCCESS"));
+        return reply.status(200).send(apiResponse(true, "Transaction successful", data, 200, "SUCCESS"));
     } catch (error) {
         return reply.status(400).send(apiResponse(false, error.message, null, 400, "FAILURE"));
     }

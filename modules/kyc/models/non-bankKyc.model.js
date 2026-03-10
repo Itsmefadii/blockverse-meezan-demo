@@ -26,7 +26,9 @@ export const NonBank_kyc = sequelize.define(
       allowNull: false,
       unique: true,
     },
-
+    address: {
+      type: DataTypes.STRING
+    },
     createdAt: {
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW,

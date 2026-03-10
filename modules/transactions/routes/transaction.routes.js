@@ -1,4 +1,4 @@
-import { getBalanceController, trasactionController, usdcToPkrConversionController } from "../controllers/transactions.controller.js";
+import { fetchTransactionsController, getBalanceController, trasactionController, usdcToPkrConversionController } from "../controllers/transactions.controller.js";
 
 export const transactionRoutes = (fastify, options, done) => {
     fastify.route({
@@ -7,6 +7,9 @@ export const transactionRoutes = (fastify, options, done) => {
     handler: (req, reply) => {
       if (req.method == "POST") {
         trasactionController(req, reply)
+      }
+      if (req.method == "GET") {
+        fetchTransactionsController(req, reply)
       }
     },
   });

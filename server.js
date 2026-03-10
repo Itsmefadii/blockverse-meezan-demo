@@ -45,4 +45,4 @@ const start = async () => {
 };
 
 start();
-transactions();
+// transactions();
