@@ -129,13 +129,16 @@ export const getBalanceService = async (req) => {
 
     const pkrBalance = await PkrConversions.findAll({
       where: {
-        userId: req.user.id
-      }
-    })
+        userId: req.user.id,
+      },
+    });
 
-    const sumPkr = pkrBalance.reduce((acc, curr) => acc + Number(curr.pkrAmount), 0);
+    const sumPkr = pkrBalance.reduce(
+      (acc, curr) => acc + Number(curr.pkrAmount),
+      0,
+    );
 
-    return {usdc_amount : usdcbalance, pkr_amount: sumPkr};
+    return { usdc_amount: usdcbalance, pkr_amount: sumPkr };
   } catch (error) {
     throw new Error(error.message);
   }
@@ -257,6 +260,12 @@ export const fetchTransactionsService = async (req) => {
         { toWalletAddress: req.user.walletAddress },
         { fromWalletAddress: req.user.walletAddress },
       ],
+      [Op.not]: {
+        [Op.or]: [
+          { toWalletAddress: process.env.DISPUTE_WALLET_ADDRESS },
+          { fromWalletAddress: process.env.DISPUTE_WALLET_ADDRESS },
+        ],
+      },
     };
 
     console.log(whereCondition);

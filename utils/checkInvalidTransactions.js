@@ -63,6 +63,20 @@ export const transactions = async () => {
           },
         });
 
+        if (findBankKYC || findNonBankKYC) {
+          await TransactionHistory.create({
+            fromWalletAddress: from,
+            toWalletAddress: to,
+            status: "SUCCESS",
+            transHash: null,
+            initiator: null,
+            isAuthorized: 1,
+            toDisputeWallet: 0,
+            isDispute: 0,
+            amount: ethers.formatUnits(value, 6),
+          });
+        }
+
         console.log(findNonBankKYC);
 
         const amount = ethers.formatUnits(value, 6);

@@ -76,7 +76,7 @@ export const fetchTransactionHistoryService = async (req) => {
     }
     if (isDispute) {
       where = {
-        [Op.and]: [{ toDisputeWallet: 1 }, { isDispute: 1 }],
+        toDisputeWallet: 1
       };
     }
     if (isTreasury) {
@@ -103,6 +103,7 @@ export const fetchTransactionHistoryService = async (req) => {
 
     transactionHistory = await TransactionHistory.findAndCountAll({
       where,
+      attributes: ["id", "fromWalletAddress", "toWalletAddress", "amount", "status", "transHash", "isDispute"],
       order: [["createdAt", "DESC"]],
       limit: limitValue,
       offset: offsetValue,
