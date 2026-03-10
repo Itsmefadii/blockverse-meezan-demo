@@ -283,6 +283,7 @@ export const fetchTransactionsService = async (req) => {
     }
     const Txn = await TransactionHistory.findAll({
       where: whereCondition,
+      order: [["createdAt", "DESC"]],
     });
 
     const refactorData = Txn.map((txn) => {
