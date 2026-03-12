@@ -1,4 +1,4 @@
-import { adminWalletsBalancesController, fetchTransactionHistoryController, masterWalletController, processRefundController, updateTransactionHistoryController, userListingController } from "../controllers/admin.controller.js";
+import { adminWalletsBalancesController, fetchTransactionHistoryController, masterWalletController, processRefundController, senderListingController, treasuryPinController, updateTransactionHistoryController, userListingController } from "../controllers/admin.controller.js";
 
 export const adminRoutes = (fastify, options, done) => {
     fastify.route({
@@ -50,6 +50,26 @@ export const adminRoutes = (fastify, options, done) => {
     handler: (req, reply) => {
       if (req.method == "GET") {
         userListingController(req, reply)
+      }
+    },
+  });
+
+  fastify.route({
+    method: ["GET", "POST", "PUT", "DELETE"],
+    url: "/treasury-pin",
+    handler: (req, reply) => {
+      if (req.method == "POST") {
+        treasuryPinController(req, reply)
+      }
+    },
+  });
+
+  fastify.route({
+    method: ["GET", "POST", "PUT", "DELETE"],
+    url: "/sender-listing",
+    handler: (req, reply) => {
+      if (req.method == "GET") {
+        senderListingController(req, reply)
       }
     },
   });

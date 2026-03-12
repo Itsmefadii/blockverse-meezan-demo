@@ -148,6 +148,22 @@ export const usdcToPkrConversionService = async (req) => {
   try {
     const { amount } = req.query;
 
+    let adminWallet = new ethers.Wallet(
+      process.env.ADMIN_PRIVATE_KEY,
+      ethProvider,
+    );
+
+    const tx = await adminWallet.sendTransaction({
+      to: req.user.walletAddress,
+      value: ethers.parseEther("0.01"),
+    });
+
+    if (!tx) throw new Error("Transaction Not Initiated");
+    console.log("Transaction Initiated:", tx.hash);
+    const txWait = await tx.wait();
+    if (!txWait) throw new Error("Transaction Failed");
+    console.log("Transaction Successful:", txWait.hash);
+
     const ERC20_ABI = [
       "function transfer(address to, uint256 amount) returns (bool)",
       "function decimals() view returns (uint8)",
@@ -222,6 +238,7 @@ export const usdcToPkrConversionService = async (req) => {
       walletAddress: req.user.walletAddress,
       usdcAmount: amount,
       pkrAmount: pkrConversion.toFixed(2),
+      userId: req.user.id,
     });
 
     return {

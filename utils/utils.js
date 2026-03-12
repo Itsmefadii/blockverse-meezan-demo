@@ -123,5 +123,6 @@ export const transferDisputedUsdc = async (amount, toWalletAddress, action) => {
     throw new Error(`Unable to ${action}`);
   }
 
+  console.log(`Transaction successful: ${receipt.hash}`);
   return receipt.hash
 };

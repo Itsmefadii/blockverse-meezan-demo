@@ -1,4 +1,4 @@
-import { adminWalletsBalancesService, fetchTransactionHistoryService, masterWalletServices, processRefundService, updateTransactionHistory, userListingService } from "../services/admin.services.js";
+import { adminWalletsBalancesService, fetchTransactionHistoryService, masterWalletServices, processRefundService, senderListingService, treasuryPinService, updateTransactionHistory, userListingService } from "../services/admin.services.js";
 import { apiResponse } from "../../../utils/utils.js";
 
 export const masterWalletController = async (req, reply) => {
@@ -56,6 +56,26 @@ export const processRefundController = async (req, reply) => {
         const data = await processRefundService(req);
 
         return reply.status(200).send(apiResponse(true, "Transaction successful", data, 200, "SUCCESS"));
+    } catch (error) {
+        return reply.status(400).send(apiResponse(false, error.message, null, 400, "FAILURE"));
+    }
+}
+
+export const treasuryPinController = async (req, reply) => {
+    try {
+        const data = await treasuryPinService(req);
+
+        return reply.status(200).send(apiResponse(true, "Success", data, 200, "SUCCESS"));
+    } catch (error) {
+        return reply.status(400).send(apiResponse(false, error.message, null, 400, "FAILURE"));
+    }
+}
+
+export const senderListingController = async (req, reply) => {
+    try {
+         const data = await senderListingService(req);
+
+        return reply.status(200).send(apiResponse(true, "Sender List Fetched Successfully", data, 200, "SUCCESS"));
     } catch (error) {
         return reply.status(400).send(apiResponse(false, error.message, null, 400, "FAILURE"));
     }

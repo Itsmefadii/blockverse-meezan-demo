@@ -7,9 +7,10 @@ import {
   getDisputedAmountBalance,
   transferDisputedUsdc,
 } from "../../../utils/utils.js";
-import { Op, where } from "sequelize";
+import { Op, Sequelize, where } from "sequelize";
 import { NonBank_kyc } from "../../kyc/models/non-bankKyc.model.js";
 import { BankKyc } from "../../kyc/models/bankKyc.model.js";
+import sequelize from "../../../config/db.js";
 
 export const masterWalletServices = async (req) => {
   try {
@@ -63,8 +64,7 @@ export const fetchTransactionHistoryService = async (req) => {
       throw new Error("Unauthorized Access");
     }
 
-    const { txnId, isAuthorized, isDispute, isTreasury} =
-      req.query;
+    const { txnId, isAuthorized, isDispute, isTreasury } = req.query;
 
     if (isAuthorized && isDispute && isTreasury)
       throw new Error("Use only 1 param at a time");
@@ -76,7 +76,7 @@ export const fetchTransactionHistoryService = async (req) => {
     }
     if (isDispute) {
       where = {
-        toDisputeWallet: 1
+        toDisputeWallet: 1,
       };
     }
     if (isTreasury) {
@@ -103,13 +103,84 @@ export const fetchTransactionHistoryService = async (req) => {
 
     transactionHistory = await TransactionHistory.findAndCountAll({
       where,
-      attributes: ["id", "fromWalletAddress", "toWalletAddress", "amount", "status", "transHash", "isDispute"],
+      attributes: [
+        "id",
+        "fromWalletAddress",
+        "toWalletAddress",
+        "amount",
+        "status",
+        "transHash",
+        "isDispute",
+      ],
       order: [["createdAt", "DESC"]],
       limit: limitValue,
       offset: offsetValue,
     });
 
-    return {count: transactionHistory.count, data: transactionHistory.rows};
+    const transactions = transactionHistory.rows;
+
+    for (let txn of transactions) {
+      let fromUsername = null;
+      let toUsername = null;
+
+      // --- FROM WALLET ---
+      if (txn.fromWalletAddress === process.env.DISPUTE_WALLET_ADDRESS) {
+        fromUsername = "Dispute";
+      } else if (
+        txn.fromWalletAddress === process.env.TREASURY_WALLET_ADDRESS
+      ) {
+        fromUsername = "Treasury";
+      } else {
+        // Normal user lookup
+        let fromUser = await User.findOne({
+          where: { walletAddress: txn.fromWalletAddress },
+          attributes: ["name"],
+        });
+
+        if (fromUser) {
+          fromUsername = fromUser.name;
+        } else {
+          let nonBankFromUser = await NonBank_kyc.findOne({
+            where: { wallet_address: txn.fromWalletAddress },
+            attributes: ["name"],
+          });
+
+          if (nonBankFromUser) {
+            fromUsername = nonBankFromUser.name;
+          }
+        }
+      }
+
+      // --- TO WALLET ---
+      if (txn.toWalletAddress === process.env.DISPUTE_WALLET_ADDRESS) {
+        toUsername = "Dispute";
+      } else if (txn.toWalletAddress === process.env.TREASURY_WALLET_ADDRESS) {
+        toUsername = "Treasury";
+      } else {
+        let toUser = await User.findOne({
+          where: { walletAddress: txn.toWalletAddress },
+          attributes: ["name"],
+        });
+
+        if (toUser) {
+          toUsername = toUser.name;
+        } else {
+          let nonBankToUser = await NonBank_kyc.findOne({
+            where: { wallet_address: txn.toWalletAddress },
+            attributes: ["name"],
+          });
+
+          if (nonBankToUser) {
+            toUsername = nonBankToUser.name;
+          }
+        }
+      }
+
+      txn.dataValues.fromUserName = fromUsername;
+      txn.dataValues.toUserName = toUsername;
+    }
+
+    return { count: transactionHistory.count, data: transactions };
   } catch (error) {
     throw new Error(error.message);
   }
@@ -157,7 +228,11 @@ export const processRefundService = async (req) => {
       });
 
       toWalletAddress = transInfo.fromWalletAddress;
-      transfer = await transferDisputedUsdc(transInfo.amount, toWalletAddress, action);
+      transfer = await transferDisputedUsdc(
+        transInfo.amount,
+        toWalletAddress,
+        action,
+      );
     }
 
     if (action === "process") {
@@ -170,8 +245,14 @@ export const processRefundService = async (req) => {
 
       toWalletAddress = transInfo.toWalletAddress;
 
-      transfer = await transferDisputedUsdc(transInfo.amount, toWalletAddress, action);
+      transfer = await transferDisputedUsdc(
+        transInfo.amount,
+        toWalletAddress,
+        action,
+      );
     }
+
+    console.log("Transfer Hash: ", transfer);
 
     if (transfer) {
       await TransactionHistory.create({
@@ -179,7 +260,7 @@ export const processRefundService = async (req) => {
         toWalletAddress,
         amount: transInfo.amount,
         status: "SUCCESS",
-        transactionHash: transfer,
+        transHash: transfer,
         initiator: req.user.id,
         isAuthorized: 1,
         toDisputeWallet: 0,
@@ -264,10 +345,10 @@ export const userListingService = async (req) => {
       const kyc = await BankKyc.findOne({
         where: {
           user_id: userId,
-        }
-      })
+        },
+      });
 
-      user.dataValues.kyc = kyc
+      user.dataValues.kyc = kyc;
       return user;
     }
 
@@ -300,15 +381,15 @@ export const userListingService = async (req) => {
     }
 
     const limit = parseInt(req.query.limit, 10) || 10;
-const offset = parseInt(req.query.offset, 10) || 0;
+    const offset = parseInt(req.query.offset, 10) || 0;
 
     user = await User.findAndCountAll({
       where,
       limit,
-      offset
+      offset,
     });
 
-    console.log("USER: ", user)
+    console.log("USER: ", user);
 
     // for (let i = 0; i < user.rows.length; i++) {
     //   const balance = await fetchWalletBalances(
@@ -321,20 +402,58 @@ const offset = parseInt(req.query.offset, 10) || 0;
     // }
 
     const updatedRows = await Promise.all(
-  user.rows.map(async (user) => {
-    const balance = await fetchWalletBalances(
-      user.privateKey,
-      user.walletAddress
+      user.rows.map(async (user) => {
+        const balance = await fetchWalletBalances(
+          user.privateKey,
+          user.walletAddress,
+        );
+
+        return {
+          ...user.toJSON(),
+          balance: parseFloat(balance).toFixed(2),
+        };
+      }),
+    );
+
+    return { count: user.count, data: updatedRows };
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
+export const treasuryPinService = async (req) => {
+  try {
+    const { pin } = req.body;
+
+    if (pin !== process.env.TREASURY_PIN) {
+      throw new Error("Invalid Treasury Pin");
+    }
+
+    return true;
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
+export const senderListingService = async (req) => {
+  try {
+    const { limit = 10, offset = 0 } = req.query; // default values
+
+    // 1️⃣ Get total distinct wallets (ignores limit/offset)
+    const [countResult] = await sequelize.query(
+      `SELECT COUNT(DISTINCT wallet_address) AS total_wallets
+       FROM non_bank_kyc;`,
+    );
+
+    const [totalWallets] = await sequelize.query(
+      `SELECT DISTINCT name, email, wallet_address as walletAddress
+       FROM non_bank_kyc limit ${limit} offset ${offset};`,
     );
 
     return {
-      ...user.toJSON(),
-      balance: parseFloat(balance).toFixed(2)
+      count: countResult[0].total_wallets,
+      sender: totalWallets,
     };
-  })
-);
-
-    return {count: user.count, data: updatedRows};
   } catch (error) {
     throw new Error(error.message);
   }
